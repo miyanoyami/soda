@@ -80,7 +80,7 @@ function makeTextFill(
   }
 }
 
-function strokeColor(color: TextColorId): string {
+function strokeColor(_color: TextColorId): string {
   return '#000000'
 }
 
