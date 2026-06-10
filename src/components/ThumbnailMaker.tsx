@@ -186,7 +186,7 @@ export default function ThumbnailMaker() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col gap-4 bg-gray-950 p-4 lg:flex-row lg:items-start">
+    <div className="flex min-h-screen flex-col bg-gray-950 lg:flex-row lg:items-start" style={{ gap: '1.5rem', padding: '2rem' }}>
 
       {/* コントロールパネル */}
       <div className="w-full shrink-0 rounded-2xl bg-gray-900 p-6 lg:w-80" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
