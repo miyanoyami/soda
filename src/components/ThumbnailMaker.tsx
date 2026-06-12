@@ -90,6 +90,7 @@ export default function ThumbnailMaker() {
 
   const dragging = useRef(false)
   const dragStart = useRef({ mx: 0, my: 0, ix: 0, iy: 0 })
+  const pinchStart = useRef<{ dist: number; scale: number } | null>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -139,12 +140,16 @@ export default function ThumbnailMaker() {
     img.src = url
   }
 
-  function toCanvas(e: React.MouseEvent<HTMLCanvasElement>) {
+  function clientToCanvas(clientX: number, clientY: number) {
     const rect = canvasRef.current!.getBoundingClientRect()
     return {
-      cx: (e.clientX - rect.left) * (CANVAS_W / rect.width),
-      cy: (e.clientY - rect.top)  * (CANVAS_H / rect.height),
+      cx: (clientX - rect.left) * (CANVAS_W / rect.width),
+      cy: (clientY - rect.top)  * (CANVAS_H / rect.height),
     }
+  }
+
+  function toCanvas(e: React.MouseEvent<HTMLCanvasElement>) {
+    return clientToCanvas(e.clientX, e.clientY)
   }
 
   function onMouseDown(e: React.MouseEvent<HTMLCanvasElement>) {
@@ -174,6 +179,48 @@ export default function ThumbnailMaker() {
     if (!illust) return
     e.preventDefault()
     setIllust({ ...illust, scale: Math.max(0.05, illust.scale * (e.deltaY > 0 ? 0.95 : 1.05)) })
+  }
+
+  function onTouchStart(e: React.TouchEvent<HTMLCanvasElement>) {
+    if (!illust) return
+    if (e.touches.length === 1) {
+      const { cx, cy } = clientToCanvas(e.touches[0].clientX, e.touches[0].clientY)
+      const hw = (illust.img.naturalWidth  * illust.scale) / 2
+      const hh = (illust.img.naturalHeight * illust.scale) / 2
+      if (cx >= illust.x - hw && cx <= illust.x + hw && cy >= illust.y - hh && cy <= illust.y + hh) {
+        dragging.current = true
+        dragStart.current = { mx: cx, my: cy, ix: illust.x, iy: illust.y }
+      }
+    } else if (e.touches.length === 2) {
+      dragging.current = false
+      const dx = e.touches[0].clientX - e.touches[1].clientX
+      const dy = e.touches[0].clientY - e.touches[1].clientY
+      pinchStart.current = { dist: Math.hypot(dx, dy), scale: illust.scale }
+    }
+  }
+
+  function onTouchMove(e: React.TouchEvent<HTMLCanvasElement>) {
+    if (!illust) return
+    e.preventDefault()
+    if (e.touches.length === 1 && dragging.current) {
+      const { cx, cy } = clientToCanvas(e.touches[0].clientX, e.touches[0].clientY)
+      setIllust({
+        ...illust,
+        x: dragStart.current.ix + (cx - dragStart.current.mx),
+        y: dragStart.current.iy + (cy - dragStart.current.my),
+      })
+    } else if (e.touches.length === 2 && pinchStart.current) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX
+      const dy = e.touches[0].clientY - e.touches[1].clientY
+      const dist = Math.hypot(dx, dy)
+      const newScale = Math.max(0.05, pinchStart.current.scale * (dist / pinchStart.current.dist))
+      setIllust({ ...illust, scale: newScale })
+    }
+  }
+
+  function onTouchEnd() {
+    dragging.current = false
+    pinchStart.current = null
   }
 
   function exportPng() {
@@ -344,12 +391,15 @@ export default function ThumbnailMaker() {
           ref={canvasRef}
           width={CANVAS_W}
           height={CANVAS_H}
-          style={{ width: '100%', maxWidth: '960px', aspectRatio: '16/9', height: 'auto', display: 'block', borderRadius: '12px' }}
+          style={{ width: '100%', maxWidth: '960px', aspectRatio: '16/9', height: 'auto', display: 'block', borderRadius: '12px', touchAction: 'none' }}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
           onMouseLeave={onMouseUp}
           onWheel={onWheel}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
         />
       </div>
     </div>
