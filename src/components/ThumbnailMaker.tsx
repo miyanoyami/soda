@@ -86,6 +86,7 @@ export default function ThumbnailMaker() {
     shinken: true, tanoshii: true, sankagata: false,
     sugoi: false, kakkoii: false, kawaii: false,
   })
+  const [dateText, setDateText] = useState('')
   const [advancedOpen, setAdvancedOpen] = useState(false)
 
   const dragging = useRef(false)
@@ -105,8 +106,9 @@ export default function ThumbnailMaker() {
     drawExtras(ctx,
       extras.shinken, extras.tanoshii, extras.sankagata,
       extras.sugoi, extras.kakkoii, extras.kawaii,
+      dateText ? `日時：${dateText}` : null,
     )
-  }, [bg, bgImage, color, shape, textBg, position, title, subtitle, illust, extras])
+  }, [bg, bgImage, color, shape, textBg, position, title, subtitle, illust, extras, dateText])
 
   function applyPreset(style: StyleState) {
     setBg(style.bg)
@@ -258,6 +260,16 @@ export default function ThumbnailMaker() {
               rows={2}
               className="w-full rounded-lg bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-violet-500 resize-none"
               placeholder="説明文（任意・改行可）"
+            />
+          </div>
+          <div>
+            <SectionLabel>配信日時</SectionLabel>
+            <input
+              type="text"
+              value={dateText}
+              onChange={e => setDateText(e.target.value)}
+              className="w-full rounded-lg bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-violet-500"
+              placeholder="6/13 21:00 〜（空欄で非表示）"
             />
           </div>
         </div>

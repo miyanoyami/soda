@@ -518,6 +518,50 @@ function drawRedLabel(ctx: CanvasRenderingContext2D, text: string, x: number, y:
   ctx.restore()
 }
 
+function drawDateLabel(ctx: CanvasRenderingContext2D, text: string) {
+  const fontSize = 36
+  const padX = 22
+  const padY = 14
+  const bevel = 5
+
+  ctx.save()
+  ctx.font = `${fontSize}px system-ui, sans-serif`
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'alphabetic'
+
+  const tw = ctx.measureText(text).width
+  const bw = tw + padX * 2
+  const bh = fontSize + padY * 2
+  // 説明文（H*0.91）の上、中央寄せ
+  const x = W / 2 - bw / 2
+  const y = H * 0.91 - fontSize * 2.2 - bh
+
+  // ボタン本体（オレンジ）
+  ctx.fillStyle = '#ff8c00'
+  ctx.fillRect(x, y, bw, bh)
+
+  // 上・左エッジ（明るい）
+  ctx.fillStyle = '#ffcc66'
+  ctx.fillRect(x, y, bw, bevel)           // 上
+  ctx.fillRect(x, y, bevel, bh)           // 左
+
+  // 下・右エッジ（暗い）
+  ctx.fillStyle = '#994400'
+  ctx.fillRect(x, y + bh - bevel, bw, bevel)  // 下
+  ctx.fillRect(x + bw - bevel, y, bevel, bh)  // 右
+
+  // 外枠
+  ctx.strokeStyle = '#662200'
+  ctx.lineWidth = 3
+  ctx.strokeRect(x, y, bw, bh)
+
+  // テキスト
+  ctx.fillStyle = '#ffffff'
+  ctx.fillText(text, x + padX, y + padY + fontSize * 0.82)
+
+  ctx.restore()
+}
+
 export function drawExtras(
   ctx: CanvasRenderingContext2D,
   shinken: boolean,
@@ -526,6 +570,7 @@ export function drawExtras(
   sugoi: boolean,
   kakkoii: boolean,
   kawaii: boolean,
+  dateLabel: string | null,
 ) {
   if (shinken)   drawShinkenLabel(ctx)
   if (tanoshii)  drawTanoshii(ctx)
@@ -533,6 +578,7 @@ export function drawExtras(
   if (sugoi)     drawRedLabel(ctx, 'すごい！！',    W * 0.18, H * 0.88, 96,  -0.15, '#000000')
   if (kakkoii)   drawRedLabel(ctx, 'かっこいい！！', W * 0.25, H * 0.52, 80,  -0.1,  '#ff0000')
   if (kawaii)    drawRedLabel(ctx, 'かわいい！！',  W * 0.75, H * 0.52, 80,   0.1,  '#ff69b4')
+  if (dateLabel) drawDateLabel(ctx, dateLabel)
 }
 
 // ---- 立ち絵 -------------------------------------------------------------
